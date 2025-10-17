@@ -118,11 +118,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.network(
-                  'https:${weather.current.condition.icon}',
-                  width: 64,
-                  height: 64,
-                ),
+                weather.current.condition.icon.isNotEmpty
+                    ? Image.network(
+                        weather.current.condition.icon,
+                        width: 64,
+                        height: 64,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.cloud, size: 64);
+                        },
+                      )
+                    : const Icon(Icons.cloud, size: 64),
                 const SizedBox(width: 16),
                 Column(
                   children: [

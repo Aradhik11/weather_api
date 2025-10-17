@@ -90,7 +90,7 @@ class _FutureScreenState extends State<FutureScreen> {
                 else
                   const Center(
                     child: Text(
-                      'Select a date up to 300 days in the future to get weather forecast',
+                      'Select a date between 14 and 300 days in the future to get weather forecast',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
@@ -105,12 +105,13 @@ class _FutureScreenState extends State<FutureScreen> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime now = DateTime.now();
+    final DateTime minDate = now.add(const Duration(days: 14));
     final DateTime maxDate = now.add(const Duration(days: 300));
     
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: now.add(const Duration(days: 1)),
-      firstDate: now.add(const Duration(days: 1)),
+      initialDate: minDate,
+      firstDate: minDate,
       lastDate: maxDate,
     );
     
@@ -122,6 +123,7 @@ class _FutureScreenState extends State<FutureScreen> {
   }
 
   Widget _buildFutureWeatherCard(WeatherData weather) {
+    final day = weather.forecast!.forecastday.first.day;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -131,23 +133,32 @@ class _FutureScreenState extends State<FutureScreen> {
               '${weather.location.name}, ${weather.location.country}',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            Text(
+              DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(weather.forecast!.forecastday.first.date)),
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.network(
-                  'https:${weather.current.condition.icon}',
-                  width: 64,
-                  height: 64,
-                ),
+                day.condition.icon.isNotEmpty
+                    ? Image.network(
+                        day.condition.icon,
+                        width: 64,
+                        height: 64,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.cloud, size: 64);
+                        },
+                      )
+                    : const Icon(Icons.cloud, size: 64),
                 const SizedBox(width: 16),
                 Column(
                   children: [
                     Text(
-                      '${weather.current.tempC.round()}°C',
-                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+                      '${day.maxtempC.round()}°C / ${day.mintempC.round()}°C',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    Text(weather.current.condition.text),
+                    Text(day.condition.text),
                   ],
                 ),
               ],
@@ -156,10 +167,10 @@ class _FutureScreenState extends State<FutureScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildWeatherDetail('Feels like', '${weather.current.feelslikeC.round()}°C'),
-                _buildWeatherDetail('Humidity', '${weather.current.humidity.round()}%'),
-                _buildWeatherDetail('Wind', '${weather.current.windKph.round()} km/h'),
-                _buildWeatherDetail('UV Index', weather.current.uv.toString()),
+                _buildWeatherDetail('Avg Temp', '${day.avgtempC.round()}°C'),
+                _buildWeatherDetail('Humidity', '${day.avghumidity.round()}%'),
+                _buildWeatherDetail('Max Wind', '${day.maxwindKph.round()} km/h'),
+                _buildWeatherDetail('UV Index', day.uv.toString()),
               ],
             ),
           ],

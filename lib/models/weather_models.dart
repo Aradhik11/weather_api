@@ -13,7 +13,7 @@ class WeatherData {
 
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
-      current: Current.fromJson(json['current']),
+      current: json['current'] != null ? Current.fromJson(json['current']) : Current.empty(),
       location: Location.fromJson(json['location']),
       forecast: json['forecast'] != null ? Forecast.fromJson(json['forecast']) : null,
       marine: json['marine'] != null ? Marine.fromJson(json['marine']) : null,
@@ -80,6 +80,19 @@ class Current {
       uv: json['uv'].toDouble(),
     );
   }
+
+  factory Current.empty() {
+    return Current(
+      tempC: 0.0,
+      tempF: 0.0,
+      condition: Condition(text: '', icon: ''),
+      windKph: 0.0,
+      windDir: '',
+      humidity: 0.0,
+      feelslikeC: 0.0,
+      uv: 0.0,
+    );
+  }
 }
 
 class Condition {
@@ -89,9 +102,15 @@ class Condition {
   Condition({required this.text, required this.icon});
 
   factory Condition.fromJson(Map<String, dynamic> json) {
+    String iconUrl = json['icon'] ?? '';
+    if (iconUrl.startsWith('//')) {
+      iconUrl = 'https:$iconUrl';
+    } else if (!iconUrl.startsWith('http')) {
+      iconUrl = 'https:$iconUrl';
+    }
     return Condition(
-      text: json['text'],
-      icon: json['icon'],
+      text: json['text'] ?? '',
+      icon: iconUrl,
     );
   }
 }
@@ -129,14 +148,30 @@ class ForecastDay {
 class Day {
   final double maxtempC;
   final double mintempC;
+  final double avgtempC;
+  final double avghumidity;
+  final double maxwindKph;
+  final double uv;
   final Condition condition;
 
-  Day({required this.maxtempC, required this.mintempC, required this.condition});
+  Day({
+    required this.maxtempC, 
+    required this.mintempC, 
+    required this.avgtempC,
+    required this.avghumidity,
+    required this.maxwindKph,
+    required this.uv,
+    required this.condition
+  });
 
   factory Day.fromJson(Map<String, dynamic> json) {
     return Day(
       maxtempC: json['maxtemp_c'].toDouble(),
       mintempC: json['mintemp_c'].toDouble(),
+      avgtempC: json['avgtemp_c'].toDouble(),
+      avghumidity: json['avghumidity'].toDouble(),
+      maxwindKph: json['maxwind_kph'].toDouble(),
+      uv: json['uv'].toDouble(),
       condition: Condition.fromJson(json['condition']),
     );
   }
@@ -146,14 +181,27 @@ class Hour {
   final String time;
   final double tempC;
   final Condition condition;
+  final double? waveHeightM;
+  final double? swellHeightM;
+  final Map<String, dynamic>? tides;
 
-  Hour({required this.time, required this.tempC, required this.condition});
+  Hour({
+    required this.time, 
+    required this.tempC, 
+    required this.condition,
+    this.waveHeightM,
+    this.swellHeightM,
+    this.tides,
+  });
 
   factory Hour.fromJson(Map<String, dynamic> json) {
     return Hour(
       time: json['time'],
       tempC: json['temp_c'].toDouble(),
       condition: Condition.fromJson(json['condition']),
+      waveHeightM: (json['sig_ht_mt'] as num?)?.toDouble(),
+      swellHeightM: (json['swell_ht_mt'] as num?)?.toDouble(),
+      tides: json['tides'] as Map<String, dynamic>?,
     );
   }
 }
@@ -201,10 +249,10 @@ class MarineHour {
 
   factory MarineHour.fromJson(Map<String, dynamic> json) {
     return MarineHour(
-      time: json['time'],
-      waveHeightM: json['wave_height_m']?.toDouble() ?? 0.0,
-      swellHeightM: json['swell_height_m']?.toDouble() ?? 0.0,
-      tides: json['tides'] ?? {},
+      time: json['time'] ?? '',
+      waveHeightM: (json['wave_height_m'] as num?)?.toDouble() ?? 0.0,
+      swellHeightM: (json['swell_height_m'] as num?)?.toDouble() ?? 0.0,
+      tides: json['tides'] as Map<String, dynamic>? ?? {},
     );
   }
 }

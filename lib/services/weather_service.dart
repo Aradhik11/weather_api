@@ -33,9 +33,12 @@ class WeatherService {
     final response = await http.get(Uri.parse(url));
     
     if (response.statusCode == 200) {
-      return WeatherData.fromJson(json.decode(response.body));
+      final jsonData = json.decode(response.body);
+      print('Marine API Response: $jsonData');
+      return WeatherData.fromJson(jsonData);
     } else {
-      throw Exception('Failed to load marine weather');
+      print('Marine API Error: ${response.statusCode} - ${response.body}');
+      throw Exception('Failed to load marine weather: ${response.statusCode}');
     }
   }
 
@@ -44,9 +47,15 @@ class WeatherService {
     final response = await http.get(Uri.parse(url));
     
     if (response.statusCode == 200) {
-      return WeatherData.fromJson(json.decode(response.body));
+      final jsonData = json.decode(response.body);
+      print('Future API Response keys: ${jsonData.keys}');
+      if (jsonData.containsKey('forecast')) {
+        print('Forecast data: ${jsonData['forecast']}');
+      }
+      return WeatherData.fromJson(jsonData);
     } else {
-      throw Exception('Failed to load future weather');
+      print('Future API Error: ${response.statusCode} - ${response.body}');
+      throw Exception('Failed to load future weather: ${response.statusCode}');
     }
   }
 }

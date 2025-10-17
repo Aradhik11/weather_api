@@ -48,16 +48,16 @@ class _MarineScreenState extends State<MarineScreen> {
             );
           }
 
-          final marine = provider.marineWeather?.marine;
-          if (marine == null) {
+          final forecast = provider.marineWeather?.forecast;
+          if (forecast == null) {
             return const Center(child: Text('No marine data available'));
           }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: marine.forecastday.length,
+            itemCount: forecast.forecastday.length,
             itemBuilder: (context, index) {
-              final day = marine.forecastday[index];
+              final day = forecast.forecastday[index];
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ExpansionTile(
@@ -88,9 +88,11 @@ class _MarineScreenState extends State<MarineScreen> {
                                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                                     ),
                                     const SizedBox(height: 8),
-                                    _buildMarineDetail('Wave', '${hour.waveHeightM.toStringAsFixed(1)}m'),
-                                    _buildMarineDetail('Swell', '${hour.swellHeightM.toStringAsFixed(1)}m'),
-                                    if (hour.tides.isNotEmpty)
+                                    if (hour.waveHeightM != null)
+                                      _buildMarineDetail('Wave', '${hour.waveHeightM!.toStringAsFixed(1)}m'),
+                                    if (hour.swellHeightM != null)
+                                      _buildMarineDetail('Swell', '${hour.swellHeightM!.toStringAsFixed(1)}m'),
+                                    if (hour.tides?.isNotEmpty == true)
                                       _buildMarineDetail('Tide', 'Data Available'),
                                   ],
                                 ),
